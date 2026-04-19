@@ -1,13 +1,15 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "logic-vault-next"
+main = ".open-next/worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
-# This is the "brain" of your Next.js app
-main = ".open-next/worker.js"
-
-# These are your images (hero.png, etc.) and CSS
 assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
-[pages_build_config]
-build_command = "npm run build:worker"
+[build]
+command = "npm run build:worker"
+watch_dir = "src"
+
+[env.production]
+
+[env.preview]

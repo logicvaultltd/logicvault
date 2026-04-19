@@ -10,8 +10,6 @@ import {
 import { getSiteConfig } from "@/lib/config-provider";
 import { buildSeoMetadata } from "@/lib/seo";
 
-export const runtime = "edge";
-
 export const metadata = buildSeoMetadata({
   title: "Lex Auth | Logic Vault",
   description: "Protected Logic Vault command center.",

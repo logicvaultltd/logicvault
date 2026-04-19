@@ -3,8 +3,6 @@ import { NextResponse } from "next/server";
 import { buildPublicCalculatorTitle, isPublicCalculatorType } from "@/lib/public-calculators";
 import { createPublicReport } from "@/lib/supabase-data";
 
-export const runtime = "edge";
-
 export async function POST(
   request: Request,
   context: { params: Promise<{ type: string }> }

@@ -182,10 +182,10 @@ export function ContactForm() {
             </h2>
           </div>
           <a
-            href="mailto:ops@logicvault.org"
+            href="mailto:ops@logivault.org"
             className="lv-header-control lv-link rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition"
           >
-            ops@logicvault.org
+            ops@logivault.org
           </a>
         </div>
 

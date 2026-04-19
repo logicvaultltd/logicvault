@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 
 import { fetchActivityFeed, logActivityEvent } from "@/lib/supabase-data";
 
-export const runtime = "edge";
-
 export async function GET() {
   const items = await fetchActivityFeed(10);
   return NextResponse.json({ items });

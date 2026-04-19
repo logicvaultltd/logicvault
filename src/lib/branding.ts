@@ -12,7 +12,7 @@ export function generateBrandedFilename(originalName: string) {
       .replace(/^-+|-+$/g, "")
       .toLowerCase() || "logic-vault-file";
 
-  return `logicvault.org_${cleanStem}${extension.toLowerCase()}`;
+  return `logivault.org_${cleanStem}${extension.toLowerCase()}`;
 }
 
 export function buildContentDisposition(filename: string) {

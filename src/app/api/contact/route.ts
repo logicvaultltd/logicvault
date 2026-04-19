@@ -11,7 +11,7 @@ import {
 } from "@/lib/security";
 import { canSubmitContactForm, recordContactSubmission } from "@/lib/supabase-data";
 
-const OPS_EMAIL = "ops@logicvault.org";
+const OPS_EMAIL = "ops@logivault.org";
 const CONTACT_SUCCESS_MESSAGE =
   "Transmission received. Thank you for reaching out to Logic Vault.";
 const CONTACT_SESSION_MAX_AGE = 60 * 60 * 12;

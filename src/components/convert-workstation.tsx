@@ -28,7 +28,7 @@ type ProcessingState = "idle" | "uploading" | "processing" | "ready" | "error";
 function readFilename(headers: Headers) {
   const disposition = headers.get("content-disposition");
   const match = disposition?.match(/filename="?([^"]+)"?/i);
-  return match?.[1] ?? "logicvault.org_output";
+  return match?.[1] ?? "logivault.org_output";
 }
 
 export function ConvertWorkstation({
@@ -210,7 +210,7 @@ export function ConvertWorkstation({
             <ShieldCheck className="mt-0.5 size-4 shrink-0" />
             <p>
               No account data is stored on our servers. Downloads are branded as
-              <strong> logicvault.org_*</strong> for consistent offline sharing.
+              <strong> logivault.org_*</strong> for consistent offline sharing.
             </p>
           </div>
         </div>

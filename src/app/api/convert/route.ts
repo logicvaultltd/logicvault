@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 function buildLaunchUrl(request: Request, source?: string | null) {
   const redirect = new URL("/tool/statement-to-csv", request.url);
 

@@ -6,8 +6,6 @@ import {
   verifyAdminCredentials,
 } from "@/lib/admin-auth";
 
-export const runtime = "edge";
-
 export async function POST(request: Request) {
   const formData = await request.formData();
   const email = String(formData.get("email") ?? "");

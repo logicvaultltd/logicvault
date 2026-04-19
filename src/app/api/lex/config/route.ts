@@ -1,10 +1,7 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { getAdminCookieName, verifyAdminToken } from "@/lib/admin-auth";
-import { getConfigTag, upsertSiteConfigEntries } from "@/lib/config-provider";
-
-export const runtime = "edge";
+import { upsertSiteConfigEntries } from "@/lib/config-provider";
 
 interface ConfigPayload {
   trustpilotUrl: string;
@@ -62,9 +59,6 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-
-  revalidateTag(getConfigTag(), "max");
-  revalidatePath("/", "layout");
 
   return NextResponse.json({ ok: true });
 }

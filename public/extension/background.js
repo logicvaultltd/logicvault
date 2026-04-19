@@ -12,7 +12,7 @@ chrome.contextMenus.onClicked.addListener((info) => {
     return;
   }
 
-  const url = new URL("https://logicvault.org/api/convert");
+  const url = new URL("https://logivault.org/api/convert");
   url.searchParams.set("source", info.linkUrl);
   chrome.tabs.create({ url: url.toString() });
 });

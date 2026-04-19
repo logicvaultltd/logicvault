@@ -35,7 +35,7 @@ function getInitialValues(tool: ToolDefinition) {
 function readFilename(headers: Headers) {
   const disposition = headers.get("content-disposition");
   const match = disposition?.match(/filename="?([^"]+)"?/i);
-  return match?.[1] ?? "logicvault.org_output";
+  return match?.[1] ?? "logivault.org_output";
 }
 
 export function Workstation({ tool }: WorkstationProps) {

@@ -1,4 +1,4 @@
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://logicvault.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://logivault.org";
 
 const nextSitemapConfig = {
   siteUrl,

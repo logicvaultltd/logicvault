@@ -7,8 +7,6 @@ import { isSupportedLocale } from "@/lib/i18n";
 import { buildFaqSchema, buildSeoMetadata, buildWebPageSchema } from "@/lib/seo";
 import { fetchActivityFeed, fetchToolPopularityCounts } from "@/lib/supabase-data";
 
-export const runtime = "edge";
-
 export async function generateMetadata({
   params,
 }: {

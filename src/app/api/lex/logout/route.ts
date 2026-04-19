@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 
 import { getAdminCookieName } from "@/lib/admin-auth";
 
-export const runtime = "edge";
-
 export async function POST(request: Request) {
   const response = NextResponse.redirect(new URL("/lex/auth", request.url));
   response.cookies.set({

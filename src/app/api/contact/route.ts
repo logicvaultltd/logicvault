@@ -47,6 +47,11 @@ interface SanitizedContactPayload {
 
 export const runtime = "nodejs";
 
+interface ContactMailboxConfig {
+  to: string;
+  from: string;
+}
+
 function buildMailBody(payload: SanitizedContactPayload) {
   return [
     `Name: ${payload.name}`,
@@ -57,13 +62,6 @@ function buildMailBody(payload: SanitizedContactPayload) {
     "Message:",
     payload.message,
   ].join("\n");
-}
-
-function buildMailtoUrl(payload: SanitizedContactPayload) {
-  const subject = `[Logic Vault] ${payload.purpose} from ${payload.name}`;
-  return `mailto:${OPS_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
-    buildMailBody(payload)
-  )}`;
 }
 
 function isEmail(value: string) {
@@ -79,8 +77,31 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;");
 }
 
+function getContactMailboxConfig(): ContactMailboxConfig | null {
+  const to = sanitizeContactText(
+    process.env.CONTACT_TO_EMAIL ?? process.env.LEX_ADMIN_EMAIL ?? OPS_EMAIL,
+    160
+  );
+  const from = sanitizeContactText(
+    process.env.CONTACT_FROM_EMAIL ??
+      process.env.SMTP_USER ??
+      process.env.LEX_ADMIN_EMAIL ??
+      OPS_EMAIL,
+    160
+  );
+
+  if (!to || !from || !isEmail(to) || !isEmail(from)) {
+    return null;
+  }
+
+  return {
+    to,
+    from,
+  };
+}
+
 function hasSmtpConfig() {
-  return Boolean(process.env.SMTP_HOST && process.env.CONTACT_FROM_EMAIL);
+  return Boolean(process.env.SMTP_HOST && getContactMailboxConfig());
 }
 
 function buildTransport() {
@@ -238,24 +259,30 @@ export async function POST(request: Request) {
     await recordContactSubmission({
       request,
       purpose: payload.purpose,
-      status: "accepted",
+      status: "stealth",
     });
 
-    return NextResponse.json({
-      ok: true,
-      mode: "mailto",
-      message:
-        "Transmission received. Your mail app is opening with a ready-to-send draft for the Logic Vault operations team.",
-      mailtoUrl: buildMailtoUrl(payload),
-    });
+    return NextResponse.json(
+      {
+        ok: false,
+        message:
+          "We could not send your message right now. Please try again a little later.",
+      },
+      { status: 503 }
+    );
   }
 
   try {
     const transporter = buildTransport();
+    const mailboxConfig = getContactMailboxConfig();
+
+    if (!mailboxConfig) {
+      throw new Error("Missing contact mailbox configuration.");
+    }
 
     await transporter.sendMail({
-      to: process.env.CONTACT_TO_EMAIL ?? OPS_EMAIL,
-      from: process.env.CONTACT_FROM_EMAIL ?? OPS_EMAIL,
+      to: mailboxConfig.to,
+      from: mailboxConfig.from,
       replyTo: payload.email,
       subject,
       text,
@@ -286,15 +313,16 @@ export async function POST(request: Request) {
     await recordContactSubmission({
       request,
       purpose: payload.purpose,
-      status: "accepted",
+      status: "stealth",
     });
 
-    return NextResponse.json({
-      ok: true,
-      mode: "mailto",
-      message:
-        "Transmission received. Email delivery is still syncing, so we opened a ready-to-send draft for you instead.",
-      mailtoUrl: buildMailtoUrl(payload),
-    });
+    return NextResponse.json(
+      {
+        ok: false,
+        message:
+          "We could not deliver your message right now. Please try again in a moment.",
+      },
+      { status: 502 }
+    );
   }
 }

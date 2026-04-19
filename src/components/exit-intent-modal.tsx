@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useGlobalSiteConfig } from "@/components/global-ad-provider";
 import { getDictionary, resolveLocale } from "@/lib/i18n";
-import { markTrustpilotCompleted } from "@/lib/trustpilot";
+import { getSuccessfulToolRunCount, markTrustpilotCompleted } from "@/lib/trustpilot";
 
 const EXIT_INTENT_KEY = "logic-vault:exit-intent-dismissed";
 
@@ -19,6 +19,10 @@ export function ExitIntentModal({ locale }: { locale: string | null }) {
     }
 
     if (window.localStorage.getItem(EXIT_INTENT_KEY) === "true") {
+      return;
+    }
+
+    if (getSuccessfulToolRunCount() < 1) {
       return;
     }
 

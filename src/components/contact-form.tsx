@@ -19,9 +19,8 @@ const baseInputClassName =
 
 interface ContactResponse {
   ok: boolean;
-  mode?: "smtp" | "mailto" | "noop";
+  mode?: "smtp" | "noop";
   message?: string;
-  mailtoUrl?: string;
   challenge?: MathCaptchaChallenge;
 }
 
@@ -142,6 +141,12 @@ export function ContactForm() {
         payload.message ??
           "Transmission received. Your note is now in the Logic Vault operations flow."
       );
+      setStatus({
+        tone: "success",
+        message:
+          payload.message ??
+          "Transmission received. Your note is now in the Logic Vault operations flow.",
+      });
       setFormValues({
         name: "",
         email: "",
@@ -151,10 +156,6 @@ export function ContactForm() {
         website: "",
         captchaAnswer: "",
       });
-
-      if (payload.mailtoUrl) {
-        window.location.href = payload.mailtoUrl;
-      }
     } catch (error) {
       setStatus({
         tone: "error",

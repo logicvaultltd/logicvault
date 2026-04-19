@@ -25,6 +25,14 @@ export function recordSuccessfulToolRun() {
   };
 }
 
+export function getSuccessfulToolRunCount() {
+  if (!isBrowser()) {
+    return 0;
+  }
+
+  return Number(window.localStorage.getItem(SUCCESS_COUNT_KEY) ?? "0");
+}
+
 export function markTrustpilotCompleted() {
   if (!isBrowser()) {
     return;

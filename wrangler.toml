@@ -11,5 +11,14 @@ command = "npm run build:worker"
 watch_dir = "src"
 
 [env.production]
+name = "logic-vault-next"
+
+[[env.production.routes]]
+pattern = "logicvault.org"
+custom_domain = true
+
+[[env.production.routes]]
+pattern = "www.logicvault.org"
+custom_domain = true
 
 [env.preview]

@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { TOOLS } from "@/lib/tools-registry";
-
 interface SocialTickerItem {
   id: number | string;
   city: string | null;
@@ -18,7 +16,11 @@ interface SocialTickerProps {
 function formatTickerLine(item: SocialTickerItem) {
   const city = item.city?.trim() || "a city near you";
   const fileType = item.file_type?.trim().toUpperCase() || "a secure file";
-  const toolTitle = TOOLS.find((tool) => tool.id === item.tool_slug)?.title;
+  const toolTitle = item.tool_slug
+    ?.split("-")
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" ");
 
   if (item.tool_slug === "json-universal-converter") {
     return `Someone in ${city} just converted ${fileType} to JSON`;

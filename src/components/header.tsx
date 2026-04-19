@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDown, Menu, X } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -19,89 +18,96 @@ import {
   persistLocalePreference,
   resolveLocale,
 } from "@/lib/i18n";
-import { TOOLS } from "@/lib/tools-registry";
 
 const NAV_TOOL_GROUPS = [
   {
     title: "Organize",
-    ids: ["merge-pdf", "split-pdf", "organize-pdf", "remove-pages"],
+    tools: [
+      { id: "merge-pdf", title: "Merge PDF" },
+      { id: "split-pdf", title: "Split PDF" },
+      { id: "organize-pdf", title: "Organize PDF" },
+      { id: "remove-pages", title: "Remove Pages" },
+    ],
   },
   {
     title: "Optimize",
-    ids: ["compress-pdf", "repair-pdf"],
+    tools: [
+      { id: "compress-pdf", title: "Compress PDF" },
+      { id: "repair-pdf", title: "Repair PDF" },
+    ],
   },
   {
     title: "Convert",
-    ids: [
-      "word-to-pdf",
-      "excel-to-pdf",
-      "ppt-to-pdf",
-      "jpg-to-pdf",
-      "html-to-pdf",
-      "pdf-to-word",
-      "pdf-to-excel",
-      "pdf-to-ppt",
-      "pdf-to-jpg",
-      "pdf-to-pdfa",
+    tools: [
+      { id: "word-to-pdf", title: "Word to PDF" },
+      { id: "excel-to-pdf", title: "Excel to PDF" },
+      { id: "ppt-to-pdf", title: "PPT to PDF" },
+      { id: "jpg-to-pdf", title: "JPG to PDF" },
+      { id: "html-to-pdf", title: "HTML to PDF" },
+      { id: "pdf-to-word", title: "PDF to Word" },
+      { id: "pdf-to-excel", title: "PDF to Excel" },
+      { id: "pdf-to-ppt", title: "PDF to PPT" },
+      { id: "pdf-to-jpg", title: "PDF to JPG" },
+      { id: "pdf-to-pdfa", title: "PDF to PDF/A" },
     ],
   },
   {
     title: "Security",
-    ids: ["unlock-pdf", "protect-pdf", "sign-pdf", "redact-pdf"],
+    tools: [
+      { id: "unlock-pdf", title: "Unlock PDF" },
+      { id: "protect-pdf", title: "Protect PDF" },
+      { id: "sign-pdf", title: "Sign PDF" },
+      { id: "redact-pdf", title: "Redact PDF" },
+    ],
   },
   {
     title: "PDF Tools",
-    ids: [
-      "compare-pdf",
-      "redact-pdf",
-      "crop-pdf",
-      "scan-to-pdf",
-      "rotate-pdf",
-      "page-numbers",
-      "watermark-pdf",
-      "edit-pdf",
+    tools: [
+      { id: "compare-pdf", title: "Compare PDF" },
+      { id: "redact-pdf", title: "Redact PDF" },
+      { id: "crop-pdf", title: "Crop PDF" },
+      { id: "scan-to-pdf", title: "Scan to PDF" },
+      { id: "rotate-pdf", title: "Rotate PDF" },
+      { id: "page-numbers", title: "Page Numbers" },
+      { id: "watermark-pdf", title: "Watermark PDF" },
+      { id: "edit-pdf", title: "Edit PDF" },
     ],
   },
   {
     title: "Intelligence",
-    ids: [
-      "statement-to-csv",
-      "ai-summarizer",
-      "translate-pdf",
-      "ocr-pdf",
-      "ai-expense-categorizer",
-      "financial-health-score",
+    tools: [
+      { id: "statement-to-csv", title: "Account Statement to CSV" },
+      { id: "ai-summarizer", title: "AI Summarizer" },
+      { id: "translate-pdf", title: "Translate PDF" },
+      { id: "ocr-pdf", title: "OCR PDF" },
+      { id: "ai-expense-categorizer", title: "AI Expense Categorizer" },
+      { id: "financial-health-score", title: "Financial Health Score" },
     ],
   },
   {
     title: "Developer Tools",
-    ids: [
-      "json-universal-converter",
-      "json-formatter-validator",
-      "json-to-typescript-interface",
-      "json-minifier",
-      "json-tree-viewer",
-      "base64-encoder",
-      "jwt-debugger",
+    tools: [
+      { id: "json-universal-converter", title: "JSON Universal Converter" },
+      { id: "json-formatter-validator", title: "JSON Formatter Validator" },
+      { id: "json-to-typescript-interface", title: "JSON to TypeScript Interface" },
+      { id: "json-minifier", title: "JSON Minifier" },
+      { id: "json-tree-viewer", title: "JSON Tree Viewer" },
+      { id: "base64-encoder", title: "Base64 Encoder" },
+      { id: "jwt-debugger", title: "JWT Debugger" },
     ],
   },
   {
     title: "Financial Tools",
-    ids: [
-      "yield-calculator",
-      "roi-tracker",
-      "landed-cost-calculator",
-      "marketing-budget-tool",
-      "tax-estimator",
-      "business-valuation-tool",
+    tools: [
+      { id: "yield-calculator", title: "Yield Calculator" },
+      { id: "roi-tracker", title: "ROI Tracker" },
+      { id: "landed-cost-calculator", title: "Landed Cost Calculator" },
+      { id: "marketing-budget-tool", title: "Marketing Budget Tool" },
+      { id: "tax-estimator", title: "Tax Estimator" },
+      { id: "business-valuation-tool", title: "Business Valuation Tool" },
     ],
   },
-].map((group) => ({
-  ...group,
-  tools: group.ids
-    .map((id) => TOOLS.find((tool) => tool.id === id))
-    .filter((tool): tool is (typeof TOOLS)[number] => Boolean(tool)),
-}));
+];
 
 export function Header() {
   const pathname = usePathname();
@@ -298,142 +304,119 @@ export function Header() {
         </nav>
       </div>
 
-      <AnimatePresence>
-        {mobileMenuOpen ? (
-          <motion.div
-            key="mobile-menu"
-            className="lv-mobile-overlay fixed inset-0 z-40 md:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-          >
-            <div className="flex min-h-full flex-col px-4 pb-6 pt-20">
-              <motion.div
-                className="lv-mobile-sheet mx-auto w-full max-w-xl rounded-[32px] p-5"
-                initial={{ opacity: 0, y: 26, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 16, scale: 0.98 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-              >
-                <div className="lv-divider flex items-center justify-between border-b pb-5">
-                  <Link
-                    href={localizePath("/", activeLocale)}
-                    onClick={closeMenus}
-                    className="flex items-center"
-                  >
-                    <BrandLogo size={40} textClassName="lv-text-primary" className="items-center" />
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={closeMenus}
-                    className="lv-header-control inline-flex size-11 items-center justify-center rounded-2xl border text-white/90 transition"
-                    aria-label="Close mobile menu"
-                  >
-                    <X className="size-5" />
-                  </button>
+      {mobileMenuOpen ? (
+        <div className="lv-mobile-overlay fixed inset-0 z-40 md:hidden">
+          <div className="flex min-h-full flex-col px-4 pb-6 pt-20">
+            <div className="lv-mobile-sheet mx-auto w-full max-w-xl rounded-[32px] p-5">
+              <div className="lv-divider flex items-center justify-between border-b pb-5">
+                <Link
+                  href={localizePath("/", activeLocale)}
+                  onClick={closeMenus}
+                  className="flex items-center"
+                >
+                  <BrandLogo size={40} textClassName="lv-text-primary" className="items-center" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={closeMenus}
+                  className="lv-header-control inline-flex size-11 items-center justify-center rounded-2xl border text-white/90 transition"
+                  aria-label="Close mobile menu"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+
+              <nav className="mt-5 space-y-5 text-sm font-semibold">
+                <div className="space-y-2">
+                  <p className="lv-eyebrow px-2 text-xs font-semibold uppercase tracking-[0.24em]">
+                    Tools
+                  </p>
+                  <div className="lv-surface-inset rounded-[24px] p-3">
+                    <Link
+                      href={localizePath("/", activeLocale)}
+                      onClick={closeMenus}
+                      className="lv-interactive-row flex min-h-12 items-center rounded-2xl px-4 text-base transition"
+                    >
+                      Browse all tools
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setMobileToolsOpen((current) => !current)}
+                      aria-expanded={mobileToolsOpen}
+                      className="lv-interactive-row lv-divider mt-2 flex min-h-12 w-full items-center justify-between rounded-2xl border-t px-4 text-left text-sm font-semibold transition"
+                    >
+                      <span>Open full tool library</span>
+                      <ChevronDown
+                        className={`size-4 transition ${mobileToolsOpen ? "rotate-180 lv-text-primary" : ""}`}
+                      />
+                    </button>
+                    {mobileToolsOpen ? (
+                      <div className="lv-divider mt-2 space-y-4 border-t pt-4">
+                        {NAV_TOOL_GROUPS.map((group) => (
+                          <div key={group.title}>
+                            <p className="lv-text-muted px-4 text-[11px] font-semibold uppercase tracking-[0.24em]">
+                              {group.title}
+                            </p>
+                            <div className="mt-2">
+                              {group.tools.map((tool) => (
+                                <Link
+                                  key={tool.id}
+                                  href={localizePath(`/tool/${tool.id}`, activeLocale)}
+                                  onClick={closeMenus}
+                                  className="lv-interactive-row lv-divider flex min-h-12 items-center border-t px-4 text-sm transition first:border-t-0"
+                                >
+                                  {tool.title}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
 
-                <nav className="mt-5 space-y-5 text-sm font-semibold">
-                  <div className="space-y-2">
-                    <p className="lv-eyebrow px-2 text-xs font-semibold uppercase tracking-[0.24em]">
-                      Tools
-                    </p>
-                    <div className="lv-surface-inset rounded-[24px] p-3">
-                      <Link
-                        href={localizePath("/", activeLocale)}
-                        onClick={closeMenus}
-                        className="lv-interactive-row flex min-h-12 items-center rounded-2xl px-4 text-base transition"
-                      >
-                        Browse all tools
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => setMobileToolsOpen((current) => !current)}
-                        aria-expanded={mobileToolsOpen}
-                        className="lv-interactive-row lv-divider mt-2 flex min-h-12 w-full items-center justify-between rounded-2xl border-t px-4 text-left text-sm font-semibold transition"
-                      >
-                        <span>Open full tool library</span>
-                        <ChevronDown
-                          className={`size-4 transition ${mobileToolsOpen ? "rotate-180 lv-text-primary" : ""}`}
-                        />
-                      </button>
-                      <AnimatePresence initial={false}>
-                        {mobileToolsOpen ? (
-                          <motion.div
-                            className="lv-divider mt-2 space-y-4 border-t pt-4"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.18, ease: "easeOut" }}
-                          >
-                            {NAV_TOOL_GROUPS.map((group) => (
-                              <div key={group.title}>
-                                <p className="lv-text-muted px-4 text-[11px] font-semibold uppercase tracking-[0.24em]">
-                                  {group.title}
-                                </p>
-                                <div className="mt-2">
-                                  {group.tools.map((tool) => (
-                                    <Link
-                                      key={tool.id}
-                                      href={localizePath(`/tool/${tool.id}`, activeLocale)}
-                                      onClick={closeMenus}
-                                      className="lv-interactive-row lv-divider flex min-h-12 items-center border-t px-4 text-sm transition first:border-t-0"
-                                    >
-                                      {tool.title}
-                                    </Link>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </motion.div>
-                        ) : null}
-                      </AnimatePresence>
-                    </div>
+                <div className="space-y-2">
+                  <p className="lv-eyebrow px-2 text-xs font-semibold uppercase tracking-[0.24em]">
+                    Company
+                  </p>
+                  <div className="lv-surface-inset rounded-[24px] p-3">
+                    <Link
+                      href={localizePath("/about", activeLocale)}
+                      onClick={closeMenus}
+                      className="lv-interactive-row flex min-h-12 items-center rounded-2xl px-4 text-base transition"
+                    >
+                      {copy.about}
+                    </Link>
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <p className="lv-eyebrow px-2 text-xs font-semibold uppercase tracking-[0.24em]">
-                      Company
-                    </p>
-                    <div className="lv-surface-inset rounded-[24px] p-3">
-                      <Link
-                        href={localizePath("/about", activeLocale)}
-                        onClick={closeMenus}
-                        className="lv-interactive-row flex min-h-12 items-center rounded-2xl px-4 text-base transition"
-                      >
-                        {copy.about}
-                      </Link>
+                <div className="space-y-2">
+                  <p className="lv-eyebrow px-2 text-xs font-semibold uppercase tracking-[0.24em]">
+                    Support
+                  </p>
+                  <div className="lv-surface-inset rounded-[24px] p-3">
+                    <div className="mb-4">
+                      <ThemeToggle compact onToggle={closeMenus} />
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <p className="lv-eyebrow px-2 text-xs font-semibold uppercase tracking-[0.24em]">
-                      Support
-                    </p>
-                    <div className="lv-surface-inset rounded-[24px] p-3">
-                      <div className="mb-4">
-                        <ThemeToggle compact onToggle={closeMenus} />
-                      </div>
-                      <div className="mb-3">
-                        <InstallAppButton onInstalled={closeMenus} />
-                      </div>
-                      <Link
-                        href={localizePath("/contact", activeLocale)}
-                        onClick={closeMenus}
-                        className="lv-button-primary flex min-h-12 items-center justify-center rounded-2xl px-4 text-base font-semibold transition"
-                      >
-                        {copy.contact}
-                      </Link>
-                      <div className="mt-4 px-1">{languagePicker}</div>
+                    <div className="mb-3">
+                      <InstallAppButton onInstalled={closeMenus} />
                     </div>
+                    <Link
+                      href={localizePath("/contact", activeLocale)}
+                      onClick={closeMenus}
+                      className="lv-button-primary flex min-h-12 items-center justify-center rounded-2xl px-4 text-base font-semibold transition"
+                    >
+                      {copy.contact}
+                    </Link>
+                    <div className="mt-4 px-1">{languagePicker}</div>
                   </div>
-                </nav>
-              </motion.div>
+                </div>
+              </nav>
             </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }

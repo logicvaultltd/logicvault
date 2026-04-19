@@ -179,7 +179,12 @@ export async function fetchActivityFeed(limit = 8) {
   let response: Response | null = null;
 
   for (const source of activitySources) {
-    response = await supabaseRequest(source);
+    response = await supabaseRequest(source, {
+      next: {
+        revalidate: 60,
+        tags: ["activity-feed"],
+      },
+    });
 
     if (response?.ok) {
       break;

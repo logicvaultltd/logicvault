@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -7,12 +8,16 @@ import { ShieldCheck, Upload } from "lucide-react";
 
 import { AdSlot } from "@/components/ad-slot";
 import { ProcessingStatus } from "@/components/processing-status";
-import { RatingModal } from "@/components/rating-modal";
 import { useGlobalSiteConfig } from "@/components/global-ad-provider";
 import { toVaultErrorMessage } from "@/lib/error-copy";
 import { getAccentClasses } from "@/lib/icon-map";
 import { getDictionary, getLocaleFromPathname } from "@/lib/i18n";
 import { recordSuccessfulToolRun } from "@/lib/trustpilot";
+
+const RatingModal = dynamic(
+  () => import("@/components/rating-modal").then((module) => module.RatingModal),
+  { ssr: false }
+);
 
 interface ConvertWorkstationProps {
   bankName: string;

@@ -1,14 +1,13 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ShieldCheck, Upload } from "lucide-react";
 
 import { AdSlot } from "@/components/ad-slot";
-import { JsonTreeView } from "@/components/json-tree-view";
 import { ProcessingStatus } from "@/components/processing-status";
-import { RatingModal } from "@/components/rating-modal";
 import { VaultInput } from "@/components/ui/vault-input";
 import { useGlobalSiteConfig } from "@/components/global-ad-provider";
 import { useVaultContext } from "@/context/vault-context";
@@ -18,6 +17,15 @@ import { toVaultErrorMessage } from "@/lib/error-copy";
 import { getProviderMaintenanceMessage, isProviderAvailable } from "@/lib/provider-status";
 import { recordSuccessfulToolRun } from "@/lib/trustpilot";
 import type { ToolDefinition } from "@/lib/tools-registry";
+
+const JsonTreeView = dynamic(
+  () => import("@/components/json-tree-view").then((module) => module.JsonTreeView),
+  { ssr: false }
+);
+const RatingModal = dynamic(
+  () => import("@/components/rating-modal").then((module) => module.RatingModal),
+  { ssr: false }
+);
 
 interface WorkstationProps {
   tool: ToolDefinition;

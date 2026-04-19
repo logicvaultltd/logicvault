@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 
 import type { AdSlotName } from "@/lib/ad-slots";
 
@@ -107,7 +108,7 @@ function parseJsonArray(value: string | undefined, fallback: string[]) {
   }
 }
 
-async function fetchSiteConfigRows() {
+const fetchSiteConfigRows = cache(async function fetchSiteConfigRows() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -140,7 +141,7 @@ async function fetchSiteConfigRows() {
   } catch {
     return [];
   }
-}
+});
 
 function rowsToConfig(rows: SiteConfigRow[]) {
   const lookup = new Map(rows.map((row) => [row.key, row.value]));
@@ -254,10 +255,10 @@ function rowsToConfig(rows: SiteConfigRow[]) {
   } satisfies SiteConfig;
 }
 
-export async function getSiteConfig() {
+export const getSiteConfig = cache(async function getSiteConfig() {
   const rows = await fetchSiteConfigRows();
   return rows.length > 0 ? rowsToConfig(rows) : DEFAULT_SITE_CONFIG;
-}
+});
 
 export async function upsertSiteConfigEntries(rows: SiteConfigRow[]) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

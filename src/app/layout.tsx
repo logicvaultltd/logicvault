@@ -3,13 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 
+import { DeferredShellOverlays } from "@/components/deferred-shell-overlays";
 import { Footer } from "@/components/footer";
 import { GlobalAdProvider } from "@/components/global-ad-provider";
 import { Header } from "@/components/header";
 import { JsonLd } from "@/components/json-ld";
-import { CookieConsent } from "@/components/cookie-consent";
-import { LanguageSuggestion } from "@/components/language-suggestion";
-import { ServiceWorkerRecovery } from "@/components/service-worker-recovery";
 import {
   CIRCADIAN_DARK_START_HOUR,
   CIRCADIAN_LIGHT_START_HOUR,
@@ -144,12 +142,10 @@ export default async function RootLayout({
         <GlobalAdProvider config={config}>
           <ThemeProvider>
             <VaultProvider>
-              <ServiceWorkerRecovery />
+              <DeferredShellOverlays />
               <Header />
-              <LanguageSuggestion />
               {children}
               <Footer />
-              <CookieConsent />
             </VaultProvider>
           </ThemeProvider>
         </GlobalAdProvider>

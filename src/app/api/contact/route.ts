@@ -45,7 +45,7 @@ interface SanitizedContactPayload {
   message: string;
 }
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function buildMailBody(payload: SanitizedContactPayload) {
   return [

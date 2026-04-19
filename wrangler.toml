@@ -1,18 +1,8 @@
-"$schema" = "./node_modules/wrangler/config-schema.json"
+﻿#:schema node_modules/wrangler/config-schema.json
 name = "logic-vault-next"
-main = ".open-next/worker.js"
-compatibility_date = "2026-04-18"
+compatibility_date = "2024-11-18"
 compatibility_flags = ["nodejs_compat"]
 
-[assets]
-directory = ".open-next/assets"
-binding = "ASSETS"
-
-[vars]
-NEXT_PUBLIC_SITE_URL = "https://logivault.org"
-
-[env.production.vars]
-NEXT_PUBLIC_SITE_URL = "https://logivault.org"
-
-[env.preview.vars]
-NEXT_PUBLIC_SITE_URL = "https://preview.logivault.org"
+[pages_build_config]
+build_command = "npm run build:worker"
+destination_dir = ".open-next/assets"

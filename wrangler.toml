@@ -3,6 +3,9 @@ name = "logic-vault-next"
 compatibility_date = "2024-11-18"
 compatibility_flags = ["nodejs_compat"]
 
+# This tells Cloudflare where to find the finished files
+pages_build_output_dir = ".open-next/assets"
+
 [pages_build_config]
 build_command = "npm run build:worker"
 destination_dir = ".open-next/assets"

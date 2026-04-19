@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Logic Vault Omnipresence",
+  "version": "0.1.0",
+  "description": "Convert PDF links and attachments with Logic Vault from Gmail, WhatsApp, or any page.",
+  "permissions": ["activeTab", "storage", "contextMenus", "sidePanel"],
+  "host_permissions": [
+    "https://web.whatsapp.com/*",
+    "https://mail.google.com/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Logic Vault",
+    "default_popup": "sidepanel.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["content-gmail.js"]
+    },
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["content-whatsapp.js"]
+    }
+  ]
+}

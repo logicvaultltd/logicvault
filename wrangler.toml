@@ -1,0 +1,17 @@
+name = "logic-vault-next"
+compatibility_date = "2026-04-18"
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+NEXT_PUBLIC_SITE_URL = "https://logicvault.com"
+
+[[d1_databases]]
+binding = "LOGIC_VAULT_CACHE"
+database_name = "logic-vault-cache"
+database_id = "replace-with-d1-id"
+
+[env.production.vars]
+NEXT_PUBLIC_SITE_URL = "https://logicvault.com"
+
+[env.preview.vars]
+NEXT_PUBLIC_SITE_URL = "https://preview.logicvault.com"

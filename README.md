@@ -20,6 +20,18 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Environment
+
+Create a local `.env.local` file from `.env.example` and set the admin credentials before running the app locally.
+
+Required admin variables:
+
+- `LEX_ADMIN_EMAIL`
+- `LEX_ADMIN_PASSWORD`
+- `LEX_ADMIN_SECRET`
+
+Keep `.env.local` out of Git. For Cloudflare production builds, add the same values in the Cloudflare environment settings because local env files are not pushed to GitHub.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

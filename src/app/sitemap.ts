@@ -1,47 +1,75 @@
 import type { MetadataRoute } from "next";
 
 import { SUPPORTED_LOCALES } from "@/lib/i18n";
-import { buildAlternateLanguages, SEO_PAGES, SITE_URL } from "@/lib/site";
+import { allPages } from "@/lib/seo-matrix";
+import { buildAlternateLanguages, SITE_URL } from "@/lib/site";
+import { TOOLS } from "@/lib/tools-registry";
+
+const CORE_PAGES = [
+  "/",
+  "/about",
+  "/contact",
+  "/privacy",
+  "/terms",
+  "/trust",
+  "/security",
+  "/compliance",
+] as const;
+
+const EXCLUDED_ROUTE_PATTERNS = [/placeholder/i, /test/i, /demo/i, /example/i];
+
+function isIndexableValue(value: string) {
+  return !EXCLUDED_ROUTE_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function isIndexableTool(tool: (typeof TOOLS)[number]) {
+  const keywords = tool.keywords ?? [];
+  const isPlaceholderTool =
+    tool.buttonLabel === "Reserve Tool" ||
+    keywords.some((keyword) => keyword.toLowerCase().includes("placeholder"));
+
+  return !isPlaceholderTool && isIndexableValue(tool.id);
+}
+
+function toAbsoluteUrl(path: string) {
+  return `${SITE_URL}${path === "/" ? "" : path}`;
+}
+
+function buildBaseEntry(path: string): MetadataRoute.Sitemap[number] {
+  return {
+    url: toAbsoluteUrl(path),
+    alternates: {
+      languages: Object.fromEntries(
+        Object.entries(buildAlternateLanguages(path)).map(([tag, localizedPath]) => [
+          tag,
+          toAbsoluteUrl(localizedPath),
+        ])
+      ),
+    },
+  };
+}
+
+function buildLocalizedEntry(
+  locale: (typeof SUPPORTED_LOCALES)[number],
+  path: string
+): MetadataRoute.Sitemap[number] {
+  return {
+    url: toAbsoluteUrl(`/${locale}${path === "/" ? "" : path}`),
+  };
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-  const getSeoSettings = (path: string) => ({
-    changeFrequency:
-      path.startsWith("/tool/") || path.startsWith("/convert/") ? "weekly" : "monthly",
-    priority:
-      path === "/"
-        ? 1
-        : path.startsWith("/tool/")
-          ? 0.82
-          : path.startsWith("/convert/")
-            ? 0.8
-            : 0.72,
-  }) as const;
+  const toolPaths = TOOLS.filter((tool) => isIndexableTool(tool)).map(
+    (tool) => `/tool/${tool.id}`
+  );
+  const conversionPaths = allPages
+    .filter((slug) => isIndexableValue(slug))
+    .map((slug) => `/convert/${slug}`);
+  const indexablePaths = [...CORE_PAGES, ...toolPaths, ...conversionPaths];
 
-  const buildEntry = (path: string, basePath = path): MetadataRoute.Sitemap[number] => {
-    const { changeFrequency, priority } = getSeoSettings(basePath);
-
-    return {
-      url: `${SITE_URL}${path === "/" ? "" : path}`,
-      lastModified: now,
-      changeFrequency,
-      priority,
-      alternates: {
-        languages: Object.fromEntries(
-          Object.entries(buildAlternateLanguages(basePath)).map(([tag, localizedPath]) => [
-            tag,
-            `${SITE_URL}${localizedPath === "/" ? "" : localizedPath}`,
-          ])
-        ),
-      },
-    };
-  };
-
-  const baseEntries = SEO_PAGES.map((path) => buildEntry(path));
-  const localizedEntries = SEO_PAGES.flatMap((path) =>
-    SUPPORTED_LOCALES.map((locale) =>
-      buildEntry(`/${locale}${path === "/" ? "" : path}`, path)
-    )
+  const baseEntries = indexablePaths.map((path) => buildBaseEntry(path));
+  const localizedEntries = indexablePaths.flatMap((path) =>
+    SUPPORTED_LOCALES.map((locale) => buildLocalizedEntry(locale, path))
   );
 
   return [...baseEntries, ...localizedEntries];

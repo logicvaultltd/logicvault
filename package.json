@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=20.9.0"
+    "node": "20.x"
   },
   "scripts": {
     "dev": "next dev --webpack",
@@ -16,7 +16,8 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "start": "next start",
     "lint": "eslint",
-    "smoke:tools": "node scripts/smoke-tools.mjs"
+    "smoke:tools": "node scripts/smoke-tools.mjs",
+    "smoke-test": "node scripts/smoke-tools.mjs"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",

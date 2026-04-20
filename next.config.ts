@@ -37,8 +37,21 @@ const nextConfig: NextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   trailingSlash: true,
+  // Keep Node-native PDF/image packages out of the RSC/route bundler on Vercel.
+  serverExternalPackages: ["pdf-parse", "pdfjs-dist", "canvas", "sharp"],
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
+  },
+  async headers() {
+    return [
+      {
+        source: "/api/:path*",
+        headers: [
+          // API endpoints should not be indexed directly by search engines.
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+    ];
   },
   images: {
     unoptimized: true,

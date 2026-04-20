@@ -1,5 +1,9 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const withPWA = withPWAInit({
   dest: "public",
@@ -60,6 +64,22 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 40, 48, 64, 96, 128, 192, 256, 384, 512],
     minimumCacheTTL: 31_536_000,
     qualities: [75, 85, 95],
+  },
+  webpack(config) {
+    const alias =
+      config.resolve?.alias && !Array.isArray(config.resolve.alias)
+        ? config.resolve.alias
+        : {};
+
+    config.resolve = {
+      ...config.resolve,
+      alias: {
+        ...alias,
+        "@": path.join(projectRoot, "src"),
+      },
+    };
+
+    return config;
   },
 };
 

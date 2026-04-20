@@ -1,5 +1,15 @@
-@config "../../tailwind.config.ts";
 @import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  body {
+    @apply bg-[#030712] text-slate-100 antialiased;
+  }
+}
 
 :root {
   --background: #050b14;

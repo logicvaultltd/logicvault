@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const RECOVERY_KEY = "logicvault-sw-recovery-v3";
+const RECOVERY_KEY = "logicvault-sw-recovery-v4";
 const CACHE_NAME_FRAGMENTS = [
   "logicvault",
   "workbox",

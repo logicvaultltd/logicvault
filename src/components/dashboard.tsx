@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowRight, Search, ShieldCheck, Sparkles, Workflow } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
@@ -12,11 +11,6 @@ import { SocialTicker } from "@/components/social-ticker";
 import { ToolCard } from "@/components/tool-card";
 import { getDictionary, getLocaleFromPathname, localizePath } from "@/lib/i18n";
 import { TOOLS, type ToolDefinition } from "@/lib/tools-registry";
-
-const ExitIntentModal = dynamic(
-  () => import("@/components/exit-intent-modal").then((module) => module.ExitIntentModal),
-  { ssr: false }
-);
 
 type ToolPopularityMap = Record<string, number>;
 
@@ -391,7 +385,6 @@ export function Dashboard({
         </div>
       </section>
 
-      <ExitIntentModal locale={activeLocale} />
     </main>
   );
 }

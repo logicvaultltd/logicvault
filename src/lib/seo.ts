@@ -149,13 +149,13 @@ export function buildOrganizationSchema() {
     name: SITE_NAME,
     url: SITE_URL,
     logo: absoluteUrl("/extension/icons/icon128.png"),
-    email: "ops@logivault.org",
+    email: "ops@logicvault.org",
     description:
       "Logic Vault provides secure financial document tools, PDF utilities, and business calculators for global users.",
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer support",
-      email: "ops@logivault.org",
+      email: "ops@logicvault.org",
       availableLanguage: [
         "English",
         "Spanish",

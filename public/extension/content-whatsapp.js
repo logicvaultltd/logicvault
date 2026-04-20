@@ -26,7 +26,7 @@
       button.addEventListener("click", () => {
         const source =
           node instanceof HTMLAnchorElement ? node.href : window.location.href;
-        const url = new URL("https://logivault.org/api/convert");
+        const url = new URL("https://logicvault.org/api/convert");
         url.searchParams.set("source", source);
         window.open(url.toString(), "_blank", "noopener,noreferrer");
       });

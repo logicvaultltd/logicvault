@@ -18,7 +18,7 @@
       button.style.cursor = "pointer";
 
       button.addEventListener("click", () => {
-        const url = new URL("https://logivault.org/api/convert");
+        const url = new URL("https://logicvault.org/api/convert");
         url.searchParams.set("source", anchor.href);
         window.open(url.toString(), "_blank", "noopener,noreferrer");
       });

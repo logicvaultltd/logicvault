@@ -182,12 +182,9 @@ export function ContactForm() {
               Tell us what you need
             </h2>
           </div>
-          <a
-            href="mailto:ops@logivault.org"
-            className="lv-header-control lv-link rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition"
-          >
-            ops@logivault.org
-          </a>
+          <div className="lv-header-control rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]">
+            ops@logicvault.org
+          </div>
         </div>
 
         <form className="mt-6 space-y-5" onSubmit={handleSubmit}>

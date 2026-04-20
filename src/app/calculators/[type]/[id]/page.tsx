@@ -60,7 +60,7 @@ export default async function PublicCalculatorPage({
   }
 
   const calculation = computePublicCalculator(type, report.inputs);
-  const whatsappCaption = `Check out this ${calculation.title.toLowerCase()} I ran on Logic Vault. ${process.env.NEXT_PUBLIC_SITE_URL ?? "https://logivault.org"}/calculators/${type}/${id}`;
+  const whatsappCaption = `Check out this ${calculation.title.toLowerCase()} I ran on Logic Vault. ${process.env.NEXT_PUBLIC_SITE_URL ?? "https://logicvault.org"}/calculators/${type}/${id}`;
   const path = `/calculators/${type}/${id}`;
 
   return (

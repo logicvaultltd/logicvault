@@ -21,7 +21,7 @@ export function recordSuccessfulToolRun() {
 
   return {
     visitCount: nextCount,
-    shouldPrompt: !hasCompletedTrustpilot && (nextCount === 1 || nextCount === 10),
+    shouldPrompt: !hasCompletedTrustpilot && (nextCount === 3 || nextCount === 10),
   };
 }
 

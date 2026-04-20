@@ -7,9 +7,7 @@ import {
   detectPreferredLocale,
 } from "@/lib/locale-config";
 
-// OpenNext on Cloudflare still requires the legacy middleware convention here.
-// Renaming this file back to proxy.ts makes Next treat it as Node.js proxy code,
-// which currently breaks the Workers build.
+// Next.js 16 uses the proxy file convention for request interception logic.
 function getToolSlug(pathname: string) {
   const segments = pathname.split("/").filter(Boolean);
 
@@ -131,7 +129,7 @@ async function logVisitor(request: NextRequest) {
   }
 }
 
-export function middleware(request: NextRequest, event: NextFetchEvent) {
+export function proxy(request: NextRequest, event: NextFetchEvent) {
   const pathname = request.nextUrl.pathname;
 
   if (

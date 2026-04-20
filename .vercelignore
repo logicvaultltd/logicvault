@@ -1,0 +1,11 @@
+.next
+.open-next
+.wrangler
+node_modules
+archives
+tmp-tool-audit
+*.log
+.codex-*.log
+next_dev*
+wrangler-dev-*
+dev-server.log

@@ -130,6 +130,20 @@ async function logVisitor(request: NextRequest) {
 }
 
 export function proxy(request: NextRequest, event: NextFetchEvent) {
+  const host =
+    request.headers.get("x-forwarded-host") ??
+    request.headers.get("host") ??
+    request.nextUrl.host;
+
+  if (host.toLowerCase().startsWith("www.logicvault.org")) {
+    const url = request.nextUrl.clone();
+    url.protocol = "https:";
+    url.hostname = "logicvault.org";
+    url.port = "";
+    event.waitUntil(logVisitor(request));
+    return NextResponse.redirect(url, 308);
+  }
+
   const pathname = request.nextUrl.pathname;
 
   if (

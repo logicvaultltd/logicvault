@@ -9,6 +9,7 @@ import {
   isPublicCalculatorType,
 } from "@/lib/public-calculators";
 import { buildBreadcrumbSchema, buildSeoMetadata, buildWebPageSchema } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 import { fetchPublicReport } from "@/lib/supabase-data";
 
 export const dynamicParams = true;
@@ -60,7 +61,7 @@ export default async function PublicCalculatorPage({
   }
 
   const calculation = computePublicCalculator(type, report.inputs);
-  const whatsappCaption = `Check out this ${calculation.title.toLowerCase()} I ran on Logic Vault. ${process.env.NEXT_PUBLIC_SITE_URL ?? "https://logicvault.org"}/calculators/${type}/${id}`;
+  const whatsappCaption = `Check out this ${calculation.title.toLowerCase()} I ran on Logic Vault. ${SITE_URL}/calculators/${type}/${id}`;
   const path = `/calculators/${type}/${id}`;
 
   return (

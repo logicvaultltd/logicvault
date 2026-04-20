@@ -131,7 +131,7 @@ export function ConvertWorkstation({
       formData.append("export_format", targetFormat);
       formData.append("referrer_slug", slug);
 
-      const response = await fetch("/api/process/statement-to-csv", {
+      const response = await fetch("/api/process/statement-to-csv/", {
         method: "POST",
         body: formData,
       });

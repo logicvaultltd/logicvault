@@ -171,7 +171,7 @@ export function LexDashboard({ config, analytics }: LexDashboardProps) {
     setStatusMessage(null);
 
     try {
-      const response = await fetch("/api/lex/config", {
+      const response = await fetch("/api/lex/config/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

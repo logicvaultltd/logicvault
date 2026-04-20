@@ -47,7 +47,7 @@ export function SocialTicker({ initialItems }: SocialTickerProps) {
   useEffect(() => {
     const timer = window.setInterval(async () => {
       try {
-        const response = await fetch("/api/activity", { cache: "no-store" });
+        const response = await fetch("/api/activity/", { cache: "no-store" });
 
         if (!response.ok) {
           return;

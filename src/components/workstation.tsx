@@ -258,7 +258,7 @@ export function Workstation({ tool }: WorkstationProps) {
         formData.append(key, value);
       });
 
-      const response = await fetch(`/api/process/${tool.id}`, {
+      const response = await fetch(`/api/process/${tool.id}/`, {
         method: "POST",
         body: formData,
       });
@@ -305,7 +305,7 @@ export function Workstation({ tool }: WorkstationProps) {
     }
 
     try {
-      const response = await fetch(`/api/public-reports/${reportType}`, {
+      const response = await fetch(`/api/public-reports/${reportType}/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

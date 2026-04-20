@@ -44,6 +44,7 @@ yarn-error.log*
 .vercel
 .open-next
 .wrangler/
+/tmp-tool-audit/
 
 # typescript
 *.tsbuildinfo

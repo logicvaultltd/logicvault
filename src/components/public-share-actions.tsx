@@ -16,7 +16,7 @@ export function PublicShareActions({ type, caption }: PublicShareActionsProps) {
         type="button"
         onClick={async () => {
           try {
-            await fetch("/api/activity", {
+            await fetch("/api/activity/", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

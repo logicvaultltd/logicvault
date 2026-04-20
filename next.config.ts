@@ -18,17 +18,6 @@ const withPWA = withPWAInit({
     cleanupOutdatedCaches: true,
     runtimeCaching: [
       {
-        urlPattern: /^https?:\/\/.*\/(tool|convert)\//,
-        handler: "StaleWhileRevalidate",
-        options: {
-          cacheName: "logicvault-tool-pages",
-          expiration: {
-            maxEntries: 160,
-            maxAgeSeconds: 60 * 60 * 24 * 14,
-          },
-        },
-      },
-      {
         urlPattern: /^https?:\/\/.*\/extension\/icons\/.*\.png$/,
         handler: "CacheFirst",
         options: {

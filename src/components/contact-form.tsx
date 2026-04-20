@@ -54,7 +54,7 @@ export function ContactForm() {
     setIsLoadingChallenge(true);
 
     try {
-      const response = await fetch("/api/contact", {
+      const response = await fetch("/api/contact/", {
         method: "GET",
         cache: "no-store",
       });
@@ -118,7 +118,7 @@ export function ContactForm() {
     setToastMessage(null);
 
     try {
-      const response = await fetch("/api/contact", {
+      const response = await fetch("/api/contact/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

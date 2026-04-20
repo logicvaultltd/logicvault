@@ -13,7 +13,7 @@ import { canSubmitContactForm, recordContactSubmission } from "@/lib/supabase-da
 
 const OPS_EMAIL = "ops@logicvault.org";
 const CONTACT_SUCCESS_MESSAGE =
-  "Transmission received. Thank you for reaching out to Logic Vault.";
+  "We received your message. Thank you for reaching out, we will be in touch soon.";
 const CONTACT_SESSION_MAX_AGE = 60 * 60 * 12;
 const ALLOWED_PURPOSES = new Set([
   "General Inquiry",
@@ -79,7 +79,10 @@ function escapeHtml(value: string) {
 
 function getContactMailboxConfig(): ContactMailboxConfig | null {
   const to = sanitizeContactText(
-    process.env.CONTACT_TO_EMAIL ?? process.env.LEX_ADMIN_EMAIL ?? OPS_EMAIL,
+    process.env.CONTACT_TO_EMAIL ??
+      process.env.CONTACT_EMAIL ??
+      process.env.LEX_ADMIN_EMAIL ??
+      OPS_EMAIL,
     160
   );
   const from = sanitizeContactText(
@@ -309,7 +312,8 @@ export async function POST(request: Request) {
       mode: "smtp",
       message: CONTACT_SUCCESS_MESSAGE,
     });
-  } catch {
+  } catch (error) {
+    console.error("CONTACT_DELIVERY_FAILED", error);
     await recordContactSubmission({
       request,
       purpose: payload.purpose,

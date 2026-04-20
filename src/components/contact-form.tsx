@@ -13,6 +13,8 @@ const PURPOSE_OPTIONS = [
   "Enterprise Workflow",
   "Press & Media",
 ] as const;
+const CONTACT_SUCCESS_FALLBACK =
+  "We received your message. Thank you for reaching out, we will be in touch soon.";
 
 const baseInputClassName =
   "lv-input-base w-full rounded-2xl px-4 py-3 text-sm outline-none transition";
@@ -50,8 +52,10 @@ export function ContactForm() {
     }));
   };
 
-  const loadChallenge = async () => {
-    setIsLoadingChallenge(true);
+  const loadChallenge = async (preserveLoadingState = false) => {
+    if (!preserveLoadingState) {
+      setIsLoadingChallenge(true);
+    }
 
     try {
       const response = await fetch("/api/contact/", {
@@ -79,7 +83,45 @@ export function ContactForm() {
   };
 
   useEffect(() => {
-    void loadChallenge();
+    let isCancelled = false;
+
+    const loadInitialChallenge = async () => {
+      try {
+        const response = await fetch("/api/contact/", {
+          method: "GET",
+          cache: "no-store",
+        });
+        const payload = (await response.json()) as ContactResponse;
+
+        if (!response.ok || !payload.challenge) {
+          throw new Error("Could not load the security challenge.");
+        }
+
+        if (!isCancelled) {
+          setChallenge(payload.challenge);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setStatus({
+            tone: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : "Could not load the security challenge right now.",
+          });
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingChallenge(false);
+        }
+      }
+    };
+
+    void loadInitialChallenge();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -138,14 +180,11 @@ export function ContactForm() {
       }
 
       setToastMessage(
-        payload.message ??
-          "Transmission received. Your note is now in the Logic Vault operations flow."
+        payload.message ?? CONTACT_SUCCESS_FALLBACK
       );
       setStatus({
         tone: "success",
-        message:
-          payload.message ??
-          "Transmission received. Your note is now in the Logic Vault operations flow.",
+        message: payload.message ?? CONTACT_SUCCESS_FALLBACK,
       });
       setFormValues({
         name: "",
@@ -364,7 +403,7 @@ export function ContactForm() {
               </span>
               <div>
                 <p className="lv-toast-eyebrow text-sm font-semibold uppercase tracking-[0.24em]">
-                  Transmission Received
+                  Message Received
                 </p>
                 <p className="lv-toast-copy mt-2 text-sm leading-7">{toastMessage}</p>
               </div>

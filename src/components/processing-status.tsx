@@ -42,7 +42,9 @@ export function ProcessingStatus({
       </div>
       <div className="lv-status-track mt-3 h-2 overflow-hidden rounded-full">
         <div
-          className="h-full rounded-full bg-[#10B981] transition-all duration-300"
+          className={`h-full rounded-full transition-all duration-300 ${
+            status === "ready" ? "bg-[#22c55e]" : "progress-shimmer"
+          }`}
           style={{ width: `${progress}%` }}
         />
       </div>

@@ -21,6 +21,23 @@
   .v-final {
     @apply relative flex min-h-screen flex-col;
   }
+
+  .progress-shimmer {
+    background: linear-gradient(90deg, #22c55e 0%, #4ade80 50%, #22c55e 100%);
+    background-size: 200% 100%;
+    animation: lv-progress-shimmer 1.5s linear infinite;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+  }
+}
+
+@keyframes lv-progress-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 :root {

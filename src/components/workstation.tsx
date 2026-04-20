@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ShieldCheck, Upload } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, GripVertical, ShieldCheck, Upload } from "lucide-react";
 
 import { AdSlot } from "@/components/ad-slot";
 import { ProcessingStatus } from "@/components/processing-status";
@@ -47,6 +47,10 @@ function readFilename(headers: Headers) {
 }
 
 export function Workstation({ tool }: WorkstationProps) {
+  return <WorkstationBody key={tool.id} tool={tool} />;
+}
+
+function WorkstationBody({ tool }: WorkstationProps) {
   const pathname = usePathname();
   const activeLocale = getLocaleFromPathname(pathname);
   const copy = getDictionary(activeLocale);
@@ -66,6 +70,8 @@ export function Workstation({ tool }: WorkstationProps) {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [visitCount, setVisitCount] = useState(0);
   const [downloadInfo, setDownloadInfo] = useState<{ filename: string; url: string } | null>(null);
+  const [hasDownloaded, setHasDownloaded] = useState(false);
+  const [draggedFileIndex, setDraggedFileIndex] = useState<number | null>(null);
   const lastRememberedToolId = useRef<string | null>(null);
   const downloadUrlRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -84,25 +90,6 @@ export function Workstation({ tool }: WorkstationProps) {
     rememberTool(tool.id);
     lastRememberedToolId.current = tool.id;
   }, [rememberTool, tool.id]);
-
-  useEffect(() => {
-    if (downloadUrlRef.current) {
-      URL.revokeObjectURL(downloadUrlRef.current);
-      downloadUrlRef.current = null;
-    }
-
-    setFormValues(getInitialValues(tool));
-    setSelectedFiles([]);
-    setStatus("idle");
-    setProgress(0);
-    setErrorMessage(null);
-    setTextPreview(null);
-    setShareUrl(null);
-    setShareMessage(null);
-    setIsDragging(false);
-    setDownloadInfo(null);
-    setShowRatingModal(false);
-  }, [tool]);
 
   useEffect(() => {
     return () => {
@@ -178,11 +165,21 @@ export function Workstation({ tool }: WorkstationProps) {
   };
 
   const updateSelectedFiles = (incomingFiles: File[]) => {
+    if (downloadUrlRef.current) {
+      URL.revokeObjectURL(downloadUrlRef.current);
+      downloadUrlRef.current = null;
+    }
+
     setSelectedFiles(tool.allowsMultipleFiles ? incomingFiles : incomingFiles.slice(0, 1));
     setErrorMessage(null);
     setStatus("idle");
     setProgress(0);
     setTextPreview(null);
+    setShareUrl(null);
+    setShareMessage(null);
+    setDownloadInfo(null);
+    setHasDownloaded(false);
+    setDraggedFileIndex(null);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,6 +201,45 @@ export function Workstation({ tool }: WorkstationProps) {
     anchor.href = downloadInfo.url;
     anchor.download = downloadInfo.filename;
     anchor.click();
+    setHasDownloaded(true);
+  };
+
+  const reorderSelectedFiles = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) {
+      return;
+    }
+
+    setSelectedFiles((current) => {
+      if (
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= current.length ||
+        toIndex >= current.length
+      ) {
+        return current;
+      }
+
+      const next = [...current];
+      const [movedFile] = next.splice(fromIndex, 1);
+
+      if (!movedFile) {
+        return current;
+      }
+
+      next.splice(toIndex, 0, movedFile);
+      return next;
+    });
+  };
+
+  const moveSelectedFile = (index: number, direction: -1 | 1) => {
+    const nextIndex = index + direction;
+
+    if (nextIndex < 0 || nextIndex >= selectedFiles.length) {
+      return;
+    }
+
+    reorderSelectedFiles(index, nextIndex);
+    setDraggedFileIndex(null);
   };
 
   const maybeOpenRatingModal = () => {
@@ -239,6 +275,7 @@ export function Workstation({ tool }: WorkstationProps) {
       downloadUrlRef.current = null;
       setDownloadInfo(null);
     }
+    setHasDownloaded(false);
 
     setErrorMessage(null);
     setTextPreview(null);
@@ -403,16 +440,81 @@ export function Workstation({ tool }: WorkstationProps) {
                   />
 
                   {hasFiles ? (
-                    <div className="mt-5 flex flex-wrap justify-center gap-2">
-                      {selectedFiles.map((file) => (
-                        <span
-                          key={`${file.name}-${file.size}`}
-                          className="lv-chip lv-text-secondary rounded-full px-3 py-1 text-xs font-medium"
-                        >
-                          {file.name}
-                        </span>
-                      ))}
-                    </div>
+                    tool.allowsMultipleFiles && selectedFiles.length > 1 ? (
+                      <div className="mt-5 space-y-3 text-left">
+                        <p className="lv-text-muted text-center text-sm">
+                          Drag to set the output order before processing, or use the arrow buttons.
+                        </p>
+                        <div className="space-y-2">
+                          {selectedFiles.map((file, index) => (
+                            <div
+                              key={`${file.name}-${file.size}-${index}`}
+                              draggable
+                              onDragStart={() => setDraggedFileIndex(index)}
+                              onDragOver={(event) => event.preventDefault()}
+                              onDrop={() => {
+                                if (draggedFileIndex === null) {
+                                  return;
+                                }
+
+                                reorderSelectedFiles(draggedFileIndex, index);
+                                setDraggedFileIndex(null);
+                              }}
+                              onDragEnd={() => setDraggedFileIndex(null)}
+                              className={`lv-surface-inset flex items-center gap-3 rounded-2xl px-4 py-3 transition ${
+                                draggedFileIndex === index ? "opacity-70" : ""
+                              }`}
+                            >
+                              <span className="lv-text-muted inline-flex size-8 items-center justify-center rounded-full border border-[var(--card-border)] text-xs font-semibold">
+                                {index + 1}
+                              </span>
+                              <span className="lv-text-muted shrink-0">
+                                <GripVertical className="size-4" />
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="lv-text-primary truncate text-sm font-semibold">
+                                  {file.name}
+                                </p>
+                                <p className="lv-text-muted text-xs">
+                                  {(file.size / 1024).toFixed(0)} KB
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => moveSelectedFile(index, -1)}
+                                  disabled={index === 0}
+                                  className="lv-button-secondary inline-flex items-center justify-center rounded-full p-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                                  aria-label={`Move ${file.name} earlier`}
+                                >
+                                  <ArrowUp className="size-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => moveSelectedFile(index, 1)}
+                                  disabled={index === selectedFiles.length - 1}
+                                  className="lv-button-secondary inline-flex items-center justify-center rounded-full p-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                                  aria-label={`Move ${file.name} later`}
+                                >
+                                  <ArrowDown className="size-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-5 flex flex-wrap justify-center gap-2">
+                        {selectedFiles.map((file) => (
+                          <span
+                            key={`${file.name}-${file.size}`}
+                            className="lv-chip lv-text-secondary rounded-full px-3 py-1 text-xs font-medium"
+                          >
+                            {file.name}
+                          </span>
+                        ))}
+                      </div>
+                    )
                   ) : null}
                 </div>
               ) : (
@@ -513,7 +615,7 @@ export function Workstation({ tool }: WorkstationProps) {
                         onClick={downloadAgain}
                         className="lv-button-primary inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition"
                       >
-                        {copy.downloadAgain}
+                        {hasDownloaded ? copy.downloadAgain : copy.downloadFile}
                       </button>
                     </div>
                   </div>

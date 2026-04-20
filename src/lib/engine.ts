@@ -1203,17 +1203,34 @@ async function redactPdf(file: UploadedToolFile, zoneText: string, label: string
 }
 
 function parseCropMargins(input: string) {
-  const values = input.split(",").map((value) => Number(value.trim()));
+  const values = input
+    .split(/[\s,]+/)
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map((value) => Number(value));
 
-  if (values.length !== 4 || values.some((value) => !Number.isFinite(value) || value < 0)) {
+  if (
+    values.length === 0 ||
+    values.length > 4 ||
+    values.some((value) => !Number.isFinite(value) || value < 0)
+  ) {
     throw new Error("Please enter crop margins as top,right,bottom,left.");
   }
 
+  const expandedValues =
+    values.length === 1
+      ? [values[0], values[0], values[0], values[0]]
+      : values.length === 2
+        ? [values[0], values[1], values[0], values[1]]
+        : values.length === 3
+          ? [values[0], values[1], values[2], values[1]]
+          : values;
+
   return {
-    top: values[0],
-    right: values[1],
-    bottom: values[2],
-    left: values[3],
+    top: expandedValues[0],
+    right: expandedValues[1],
+    bottom: expandedValues[2],
+    left: expandedValues[3],
   };
 }
 
@@ -1233,6 +1250,9 @@ async function cropPdf(file: UploadedToolFile, marginsText: string) {
     }
 
     page.setCropBox(margins.left, margins.bottom, cropWidth, cropHeight);
+    page.setTrimBox(margins.left, margins.bottom, cropWidth, cropHeight);
+    page.setBleedBox(margins.left, margins.bottom, cropWidth, cropHeight);
+    page.setArtBox(margins.left, margins.bottom, cropWidth, cropHeight);
   });
 
   return Buffer.from(await document.save({ useObjectStreams: true }));

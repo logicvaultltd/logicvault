@@ -53,6 +53,7 @@ export function ConvertWorkstation({
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [downloadInfo, setDownloadInfo] = useState<{ filename: string; url: string } | null>(null);
+  const [hasDownloaded, setHasDownloaded] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [visitCount, setVisitCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -93,6 +94,20 @@ export function ConvertWorkstation({
     anchor.href = downloadInfo.url;
     anchor.download = downloadInfo.filename;
     anchor.click();
+    setHasDownloaded(true);
+  };
+
+  const handleFileSelection = (file: File | null) => {
+    if (downloadInfo?.url) {
+      URL.revokeObjectURL(downloadInfo.url);
+      setDownloadInfo(null);
+    }
+
+    setSelectedFile(file);
+    setStatus("idle");
+    setProgress(0);
+    setErrorMessage(null);
+    setHasDownloaded(false);
   };
 
   const maybeOpenRatingModal = () => {
@@ -117,6 +132,7 @@ export function ConvertWorkstation({
       URL.revokeObjectURL(downloadInfo.url);
       setDownloadInfo(null);
     }
+    setHasDownloaded(false);
     setStatus("uploading");
     startProgress();
 
@@ -199,7 +215,7 @@ export function ConvertWorkstation({
             ref={fileInputRef}
             type="file"
             accept=".pdf"
-            onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+            onChange={(event) => handleFileSelection(event.target.files?.[0] ?? null)}
             className="sr-only"
           />
 
@@ -265,7 +281,7 @@ export function ConvertWorkstation({
                   onClick={downloadAgain}
                   className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition ${accent.button}`}
                 >
-                  {copy.downloadAgain}
+                  {hasDownloaded ? copy.downloadAgain : copy.downloadFile}
                 </button>
               </div>
             </div>

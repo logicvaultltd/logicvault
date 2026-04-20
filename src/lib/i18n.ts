@@ -50,6 +50,7 @@ type Dictionary = {
   processingApi: string;
   downloadReady: string;
   downloadAgain: string;
+  downloadFile: string;
   safeBadge: string;
   safeFooter: string;
   rateFirst: string;
@@ -90,6 +91,7 @@ const BASE_DICTIONARY: Dictionary = {
   processingApi: "Processing securely",
   downloadReady: "Download ready",
   downloadAgain: "Download Again",
+  downloadFile: "Download your file",
   safeBadge:
     "Your files never leave this computer unless a cloud tool is enabled. Privacy-first processing stays on by default.",
   safeFooter: "No account data is stored on our servers. 100% secure processing.",
@@ -125,6 +127,7 @@ const DICTIONARY: Partial<Record<AppLocale, Partial<Dictionary>>> = {
     processingApi: "Procesando de forma segura",
     downloadReady: "Descarga lista",
     downloadAgain: "Descargar otra vez",
+    downloadFile: "Descarga tu archivo",
     safeBadge:
       "Tus archivos no salen de este equipo salvo que una herramienta en la nube esté activa. La privacidad local es el modo por defecto.",
     safeFooter: "No guardamos datos de cuentas en nuestros servidores. Procesamiento seguro.",
@@ -158,6 +161,7 @@ const DICTIONARY: Partial<Record<AppLocale, Partial<Dictionary>>> = {
     processingApi: "Traitement sécurisé",
     downloadReady: "Téléchargement prêt",
     downloadAgain: "Télécharger à nouveau",
+    downloadFile: "Télécharger votre fichier",
     safeBadge:
       "Vos fichiers restent sur cet appareil sauf si un outil cloud est activé. Le traitement local reste le mode par défaut.",
     safeFooter: "Aucune donnée de compte n’est stockée sur nos serveurs. Traitement sécurisé.",
@@ -192,6 +196,7 @@ const DICTIONARY: Partial<Record<AppLocale, Partial<Dictionary>>> = {
     processingApi: "Processando com segurança",
     downloadReady: "Download pronto",
     downloadAgain: "Baixar novamente",
+    downloadFile: "Baixe seu arquivo",
     safeBadge:
       "Seus arquivos não saem deste computador, a menos que uma ferramenta em nuvem esteja ativa. O padrão continua sendo local e privado.",
     safeFooter: "Nenhum dado de conta é armazenado em nossos servidores. Processamento seguro.",
@@ -224,6 +229,7 @@ const DICTIONARY: Partial<Record<AppLocale, Partial<Dictionary>>> = {
     processingApi: "正在由 API 处理",
     downloadReady: "可下载",
     downloadAgain: "再次下载",
+    downloadFile: "下载文件",
     safeBadge:
       "除非启用了云工具，否则文件不会离开这台电脑。默认仍然是本地隐私处理。",
     safeFooter: "我们的服务器不会存储账户数据。100% 安全处理。",
@@ -254,6 +260,7 @@ const DICTIONARY: Partial<Record<AppLocale, Partial<Dictionary>>> = {
     processingApi: "جارٍ المعالجة بأمان",
     downloadReady: "التحميل جاهز",
     downloadAgain: "تنزيل مرة أخرى",
+    downloadFile: "حمّل ملفك",
     safeBadge:
       "لن تغادر ملفاتك هذا الجهاز إلا إذا كانت أداة سحابية مفعلة. الوضع الافتراضي يبقى محلياً وخاصاً.",
     safeFooter: "لا نخزن بيانات الحسابات على خوادمنا. معالجة آمنة بالكامل.",

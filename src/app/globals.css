@@ -7,7 +7,11 @@
 
 @layer base {
   body {
-    @apply bg-[#030712] text-slate-100 antialiased;
+    @apply min-h-screen flex flex-col bg-[#030712] text-slate-100 antialiased;
+  }
+
+  main {
+    @apply flex-1;
   }
 }
 

@@ -120,7 +120,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`v-final ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full font-sans">
@@ -139,16 +139,18 @@ export default async function RootLayout({
           }`}
         </Script>
         <JsonLd data={[buildOrganizationSchema(), buildWebsiteSchema()]} />
-        <GlobalAdProvider config={config}>
-          <ThemeProvider>
-            <VaultProvider>
-              <DeferredShellOverlays />
-              <Header />
-              {children}
-              <Footer />
-            </VaultProvider>
-          </ThemeProvider>
-        </GlobalAdProvider>
+        <div id="app-root" className="v-final">
+          <GlobalAdProvider config={config}>
+            <ThemeProvider>
+              <VaultProvider>
+                <DeferredShellOverlays />
+                <Header />
+                {children}
+                <Footer />
+              </VaultProvider>
+            </ThemeProvider>
+          </GlobalAdProvider>
+        </div>
       </body>
     </html>
   );

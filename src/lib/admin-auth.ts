@@ -4,7 +4,7 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 const ADMIN_COOKIE_NAME = "logic-vault-admin";
-const DEFAULT_ADMIN_EMAIL = "ops@logicvault.org";
+const DEFAULT_ADMIN_EMAIL = "opsd@logicvault.org";
 
 function toBase64(bytes: Uint8Array) {
   let binary = "";

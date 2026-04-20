@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { LexDashboard } from "@/components/lex-dashboard";
 import { getAnalyticsSnapshot } from "@/lib/analytics";
 import {
-  getConfiguredAdminEmail,
   getAdminCookieName,
   verifyAdminToken,
 } from "@/lib/admin-auth";
@@ -28,7 +27,6 @@ export default async function LexAuthPage({
     getSiteConfig(),
     getAnalyticsSnapshot(),
   ]);
-  const adminEmail = getConfiguredAdminEmail();
   const isAuthenticated = await verifyAdminToken(
     cookieStore.get(getAdminCookieName())?.value
   );
@@ -44,17 +42,14 @@ export default async function LexAuthPage({
           <p className="mt-3 text-sm leading-7 text-slate-400">
             Secure command center for site configuration, ad controls, SEO, and analytics.
           </p>
-          <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 text-sm text-slate-300">
-            Admin account: <span className="font-semibold text-white">{adminEmail}</span>
-          </div>
 
           <form action="/api/lex/login" method="post" className="mt-8 space-y-4">
             <label className="block">
-              <span className="text-sm font-semibold text-slate-300">Admin Email</span>
+              <span className="text-sm font-semibold text-slate-300">Admin Identifier</span>
               <input
                 name="email"
                 type="email"
-                defaultValue={adminEmail}
+                placeholder="Enter your admin email"
                 required
                 className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-vault-blue"
               />

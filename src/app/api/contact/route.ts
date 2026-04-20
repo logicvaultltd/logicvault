@@ -49,6 +49,7 @@ export const runtime = "nodejs";
 
 interface ContactMailboxConfig {
   to: string;
+  bcc?: string[];
   fromEmail: string;
   fromName: string;
 }
@@ -78,14 +79,40 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;");
 }
 
+function collectUniqueEmails(values: Array<string | undefined>) {
+  const seen = new Set<string>();
+  const emails: string[] = [];
+
+  for (const value of values) {
+    const sanitized = sanitizeContactText(value, 160);
+
+    if (!sanitized || !isEmail(sanitized)) {
+      continue;
+    }
+
+    const normalized = sanitized.toLowerCase();
+
+    if (seen.has(normalized)) {
+      continue;
+    }
+
+    seen.add(normalized);
+    emails.push(sanitized);
+  }
+
+  return emails;
+}
+
 function getContactMailboxConfig(): ContactMailboxConfig | null {
-  const to = sanitizeContactText(
-    process.env.CONTACT_TO_EMAIL ??
-      process.env.CONTACT_EMAIL ??
-      process.env.LEX_ADMIN_EMAIL ??
-      OPS_EMAIL,
-    160
-  );
+  const recipients = collectUniqueEmails([
+    process.env.CONTACT_TO_EMAIL,
+    process.env.CONTACT_EMAIL,
+    process.env.SMTP_USER,
+    process.env.LEX_ADMIN_EMAIL,
+    process.env.CONTACT_FROM_EMAIL,
+    OPS_EMAIL,
+  ]);
+  const to = recipients[0];
   const fromEmail = sanitizeContactText(
     process.env.SMTP_USER ??
       process.env.CONTACT_FROM_EMAIL ??
@@ -96,12 +123,13 @@ function getContactMailboxConfig(): ContactMailboxConfig | null {
   const fromName =
     sanitizeContactText(process.env.CONTACT_FROM_NAME, 120) || "Logic Vault Operations";
 
-  if (!to || !fromEmail || !isEmail(to) || !isEmail(fromEmail)) {
+  if (!to || !fromEmail || !isEmail(fromEmail)) {
     return null;
   }
 
   return {
     to,
+    bcc: recipients.slice(1),
     fromEmail,
     fromName,
   };
@@ -293,6 +321,7 @@ export async function POST(request: Request) {
 
     await transporter.sendMail({
       to: mailboxConfig.to,
+      bcc: mailboxConfig.bcc,
       from: buildFromHeader(mailboxConfig),
       sender: mailboxConfig.fromEmail,
       replyTo: payload.email,

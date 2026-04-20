@@ -55,6 +55,18 @@ function getActiveLocale(pathname: string) {
     : null;
 }
 
+function shouldForceLocalePrefix(pathname: string) {
+  const segments = pathname.split("/").filter(Boolean);
+  const rootSegment = segments[0] ?? "";
+
+  return (
+    rootSegment === "tool" ||
+    rootSegment === "convert" ||
+    rootSegment === "calculators" ||
+    rootSegment === "r"
+  );
+}
+
 async function hashIp(ip: string) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ip));
   return Array.from(new Uint8Array(digest))
@@ -145,7 +157,10 @@ export function middleware(request: NextRequest, event: NextFetchEvent) {
       (savedLocale as (typeof SUPPORTED_LOCALES)[number] | null) ??
       detectPreferredLocale(request.headers.get("accept-language"), SUPPORTED_LOCALES);
 
-    if (preferredLocale && preferredLocale !== DEFAULT_LOCALE) {
+    if (
+      preferredLocale &&
+      (preferredLocale !== DEFAULT_LOCALE || shouldForceLocalePrefix(pathname))
+    ) {
       const url = request.nextUrl.clone();
       url.pathname = `/${preferredLocale}${pathname === "/" ? "" : pathname}`;
       const response = NextResponse.redirect(url);

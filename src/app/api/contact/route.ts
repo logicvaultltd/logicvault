@@ -49,7 +49,8 @@ export const runtime = "nodejs";
 
 interface ContactMailboxConfig {
   to: string;
-  from: string;
+  fromEmail: string;
+  fromName: string;
 }
 
 function buildMailBody(payload: SanitizedContactPayload) {
@@ -85,26 +86,33 @@ function getContactMailboxConfig(): ContactMailboxConfig | null {
       OPS_EMAIL,
     160
   );
-  const from = sanitizeContactText(
-    process.env.CONTACT_FROM_EMAIL ??
-      process.env.SMTP_USER ??
+  const fromEmail = sanitizeContactText(
+    process.env.SMTP_USER ??
+      process.env.CONTACT_FROM_EMAIL ??
       process.env.LEX_ADMIN_EMAIL ??
       OPS_EMAIL,
     160
   );
+  const fromName =
+    sanitizeContactText(process.env.CONTACT_FROM_NAME, 120) || "Logic Vault Operations";
 
-  if (!to || !from || !isEmail(to) || !isEmail(from)) {
+  if (!to || !fromEmail || !isEmail(to) || !isEmail(fromEmail)) {
     return null;
   }
 
   return {
     to,
-    from,
+    fromEmail,
+    fromName,
   };
 }
 
 function hasSmtpConfig() {
   return Boolean(process.env.SMTP_HOST && getContactMailboxConfig());
+}
+
+function buildFromHeader({ fromEmail, fromName }: ContactMailboxConfig) {
+  return `"${fromName.replaceAll('"', "")}" <${fromEmail}>`;
 }
 
 function buildTransport() {
@@ -285,7 +293,8 @@ export async function POST(request: Request) {
 
     await transporter.sendMail({
       to: mailboxConfig.to,
-      from: mailboxConfig.from,
+      from: buildFromHeader(mailboxConfig),
+      sender: mailboxConfig.fromEmail,
       replyTo: payload.email,
       subject,
       text,

@@ -9,3 +9,6 @@ tmp-tool-audit
 next_dev*
 wrangler-dev-*
 dev-server.log
+.env
+.env.local
+.env.production

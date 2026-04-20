@@ -32,6 +32,19 @@ interface SiteConfigRow {
 }
 
 const CONFIG_TAG = "site-config";
+
+function getEnvValue(...keys: string[]) {
+  for (const key of keys) {
+    const value = process.env[key];
+
+    if (value && value.trim().length > 0) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
 const DEFAULT_SITE_CONFIG: SiteConfig = {
   trustpilotUrl: process.env.NEXT_PUBLIC_TRUSTPILOT_URL ?? "https://www.trustpilot.com/",
   maintenanceMode: false,
@@ -69,9 +82,9 @@ const DEFAULT_SITE_CONFIG: SiteConfig = {
     stickyFooter: { enabled: false, script: "" },
   },
   apiStatus: {
-    gemini: Boolean(process.env.GEMINI_API_KEY),
+    gemini: Boolean(getEnvValue("GEMINI_API_KEY", "AI_SUMMARIZATION_KEY")),
     cloudconvert: Boolean(process.env.CLOUDCONVERT_API_KEY),
-    pdfco: Boolean(process.env.PDFCO_API_KEY),
+    pdfco: Boolean(getEnvValue("PDFCO_API_KEY", "PDF_CO_API_KEY")),
     ocrspace: Boolean(process.env.OCR_SPACE_API_KEY),
     mindee: Boolean(process.env.MINDEE_API_KEY),
     exchangerate: Boolean(process.env.EXCHANGERATE_API_KEY),
@@ -239,11 +252,15 @@ function rowsToConfig(rows: SiteConfigRow[]) {
       },
     },
     apiStatus: {
-      gemini: Boolean(lookup.get("gemini_key") || process.env.GEMINI_API_KEY),
+      gemini: Boolean(
+        lookup.get("gemini_key") || getEnvValue("GEMINI_API_KEY", "AI_SUMMARIZATION_KEY")
+      ),
       cloudconvert: Boolean(
         lookup.get("cloudconvert_key") || process.env.CLOUDCONVERT_API_KEY
       ),
-      pdfco: Boolean(lookup.get("pdfco_key") || process.env.PDFCO_API_KEY),
+      pdfco: Boolean(
+        lookup.get("pdfco_key") || getEnvValue("PDFCO_API_KEY", "PDF_CO_API_KEY")
+      ),
       ocrspace: Boolean(
         lookup.get("ocrspace_key") || process.env.OCR_SPACE_API_KEY
       ),

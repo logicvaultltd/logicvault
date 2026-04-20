@@ -1669,7 +1669,7 @@ function categorizeExpense(description: string) {
 }
 
 async function runGeminiPrompt(prompt: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY ?? process.env.AI_SUMMARIZATION_KEY;
 
   if (!apiKey) {
     return null;

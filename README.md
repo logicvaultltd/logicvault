@@ -22,15 +22,33 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Environment
 
-Create a local `.env.local` file from `.env.example` and set the admin credentials before running the app locally.
+Create a local `.env.local` file from `.env.template` or `.env.example` before running the app locally.
 
-Required admin variables:
+Core variables used by the app:
 
+- `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `LEX_ADMIN_EMAIL`
 - `LEX_ADMIN_PASSWORD`
 - `LEX_ADMIN_SECRET`
+- `CONTACT_FROM_EMAIL`
+- `CONTACT_TO_EMAIL`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
 
-Keep `.env.local` out of Git. For Cloudflare production builds, add the same values in the Cloudflare environment settings because local env files are not pushed to GitHub.
+Optional but recommended:
+
+- `SUPABASE_SERVICE_ROLE_KEY` for visitor logging and admin config writes
+- `CONTACT_SECURITY_SECRET` for contact-session signing
+- `NEXT_PUBLIC_TRUSTPILOT_URL` for branded review links
+- provider keys listed in `.env.template` / `.env.example`
+
+The app also accepts `AI_SUMMARIZATION_KEY` as a legacy alias for `GEMINI_API_KEY`, and `PDF_CO_API_KEY` as a legacy alias for `PDFCO_API_KEY`.
+
+Keep `.env.local`, `.env.production`, and `.vercel/` out of Git. Vercel production should carry the same real values because local env files are never pushed to GitHub.
 
 ## Learn More
 

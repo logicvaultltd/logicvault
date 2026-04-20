@@ -18,6 +18,7 @@ interface VerifyMathCaptchaInput extends MathCaptchaChallenge {
 function getSecuritySecret() {
   return (
     process.env.CONTACT_SECURITY_SECRET ??
+    process.env.LEX_ADMIN_SECRET ??
     process.env.LEX_ADMIN_PASSWORD ??
     "logicvault-contact-security"
   );

@@ -5,15 +5,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { createObjectCsvStringifier } from "csv-writer";
-import { Document, HeadingLevel, Packer, Paragraph } from "docx";
-import JSZip from "jszip";
-import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
 import { PDFDocument, StandardFonts, degrees, rgb } from "pdf-lib";
-import pptxgen from "pptxgenjs";
-import sharp from "sharp";
-import * as XLSX from "xlsx";
 
 import {
   processBase64EncoderStub,
@@ -56,6 +48,8 @@ const TEXT_MIME_TYPE = "text/plain; charset=utf-8";
 const CSV_MIME_TYPE = "text/csv; charset=utf-8";
 const JSON_MIME_TYPE = "application/json; charset=utf-8";
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
+const PDF_BROWSER_WORKER_URL =
+  "https://cdn.jsdelivr.net/npm/pdf-parse@2.4.5/dist/pdf-parse/web/pdf.worker.mjs";
 const PDF_WORKER_CANDIDATES = [
   resolve(
     /* turbopackIgnore: true */ process.cwd(),
@@ -97,6 +91,141 @@ const STOP_WORDS = new Set([
   "with",
 ]);
 let pdfWorkerConfigured = false;
+let csvWriterModulePromise: Promise<typeof import("csv-writer")> | null = null;
+let docxModulePromise: Promise<typeof import("docx")> | null = null;
+let jsZipModulePromise: Promise<unknown> | null = null;
+let mammothModulePromise: Promise<unknown> | null = null;
+let pdfParseModulePromise: Promise<typeof import("pdf-parse")> | null = null;
+let pptxgenModulePromise: Promise<(typeof import("pptxgenjs"))["default"]> | null = null;
+let sharpModulePromise: Promise<unknown> | null = null;
+let xlsxModulePromise: Promise<typeof import("xlsx")> | null = null;
+
+function loadCsvWriter() {
+  csvWriterModulePromise ??= import("csv-writer");
+  return csvWriterModulePromise;
+}
+
+function loadDocx() {
+  docxModulePromise ??= import("docx");
+  return docxModulePromise;
+}
+
+function loadJsZip(): Promise<typeof import("jszip")> {
+  jsZipModulePromise ??= import("jszip").then((module) => module.default);
+  return jsZipModulePromise as Promise<typeof import("jszip")>;
+}
+
+function loadMammoth(): Promise<typeof import("mammoth")> {
+  mammothModulePromise ??= import("mammoth").then((module) => module.default);
+  return mammothModulePromise as Promise<typeof import("mammoth")>;
+}
+
+function loadPdfParse() {
+  pdfParseModulePromise ??= import("pdf-parse");
+  return pdfParseModulePromise;
+}
+
+function loadPptxGen(): Promise<(typeof import("pptxgenjs"))["default"]> {
+  pptxgenModulePromise ??= import("pptxgenjs").then((module) => module.default);
+  return pptxgenModulePromise;
+}
+
+function loadSharp(): Promise<typeof import("sharp")> {
+  sharpModulePromise ??= import("sharp").then((module) => module.default);
+  return sharpModulePromise as Promise<typeof import("sharp")>;
+}
+
+function loadXlsx() {
+  xlsxModulePromise ??= import("xlsx");
+  return xlsxModulePromise;
+}
+
+class WorkerDOMMatrix {
+  a = 1;
+  b = 0;
+  c = 0;
+  d = 1;
+  e = 0;
+  f = 0;
+  is2D = true;
+
+  constructor(init?: number[]) {
+    if (Array.isArray(init) && init.length >= 6) {
+      [this.a, this.b, this.c, this.d, this.e, this.f] = init;
+    }
+  }
+
+  multiplySelf(other: WorkerDOMMatrix) {
+    const a = this.a * other.a + this.c * other.b;
+    const b = this.b * other.a + this.d * other.b;
+    const c = this.a * other.c + this.c * other.d;
+    const d = this.b * other.c + this.d * other.d;
+    const e = this.a * other.e + this.c * other.f + this.e;
+    const f = this.b * other.e + this.d * other.f + this.f;
+
+    this.a = a;
+    this.b = b;
+    this.c = c;
+    this.d = d;
+    this.e = e;
+    this.f = f;
+    return this;
+  }
+
+  preMultiplySelf(other: WorkerDOMMatrix) {
+    const clone = new WorkerDOMMatrix([this.a, this.b, this.c, this.d, this.e, this.f]);
+    this.a = other.a;
+    this.b = other.b;
+    this.c = other.c;
+    this.d = other.d;
+    this.e = other.e;
+    this.f = other.f;
+    return this.multiplySelf(clone);
+  }
+
+  translateSelf(tx = 0, ty = 0) {
+    return this.multiplySelf(new WorkerDOMMatrix([1, 0, 0, 1, tx, ty]));
+  }
+
+  scaleSelf(scaleX = 1, scaleY = scaleX) {
+    return this.multiplySelf(new WorkerDOMMatrix([scaleX, 0, 0, scaleY, 0, 0]));
+  }
+
+  invertSelf() {
+    const determinant = this.a * this.d - this.b * this.c;
+
+    if (!determinant) {
+      this.a = Number.NaN;
+      this.b = Number.NaN;
+      this.c = Number.NaN;
+      this.d = Number.NaN;
+      this.e = Number.NaN;
+      this.f = Number.NaN;
+      return this;
+    }
+
+    const a = this.d / determinant;
+    const b = -this.b / determinant;
+    const c = -this.c / determinant;
+    const d = this.a / determinant;
+    const e = (this.c * this.f - this.d * this.e) / determinant;
+    const f = (this.b * this.e - this.a * this.f) / determinant;
+
+    this.a = a;
+    this.b = b;
+    this.c = c;
+    this.d = d;
+    this.e = e;
+    this.f = f;
+    return this;
+  }
+}
+
+function ensurePdfRuntimePrimitives() {
+  if (typeof globalThis.DOMMatrix === "undefined") {
+    globalThis.DOMMatrix = WorkerDOMMatrix as typeof DOMMatrix;
+  }
+}
 
 function sanitizeStem(name: string) {
   const trimmed = name.replace(/\.[^.]+$/, "").trim().toLowerCase();
@@ -209,7 +338,7 @@ function wrapLine(value: string, maxChars = 90) {
 }
 
 async function extractPdfText(buffer: Buffer) {
-  const parser = createPdfParser(buffer);
+  const parser = await createPdfParser(buffer);
 
   try {
     const result = await parser.getText();
@@ -220,7 +349,7 @@ async function extractPdfText(buffer: Buffer) {
 }
 
 async function extractPdfScreenshots(buffer: Buffer) {
-  const parser = createPdfParser(buffer);
+  const parser = await createPdfParser(buffer);
 
   try {
     const result = await parser.getScreenshot();
@@ -230,10 +359,12 @@ async function extractPdfScreenshots(buffer: Buffer) {
   }
 }
 
-function configurePdfWorker() {
+async function configurePdfWorker() {
   if (pdfWorkerConfigured) {
     return;
   }
+
+  const { PDFParse } = await loadPdfParse();
 
   for (const workerPath of PDF_WORKER_CANDIDATES) {
     if (!existsSync(workerPath)) {
@@ -245,12 +376,29 @@ function configurePdfWorker() {
     return;
   }
 
+  PDFParse.setWorker(PDF_BROWSER_WORKER_URL);
   pdfWorkerConfigured = true;
 }
 
-function createPdfParser(buffer: Buffer) {
-  configurePdfWorker();
+async function createPdfParser(buffer: Buffer) {
+  ensurePdfRuntimePrimitives();
+  const { PDFParse } = await loadPdfParse();
+  await configurePdfWorker();
   return new PDFParse({ data: new Uint8Array(buffer) });
+}
+
+async function embedRasterImage(document: PDFDocument, file: UploadedToolFile) {
+  const lowerName = file.name.toLowerCase();
+
+  if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
+    return document.embedJpg(file.data);
+  }
+
+  if (lowerName.endsWith(".png")) {
+    return document.embedPng(file.data);
+  }
+
+  throw new Error("Please use JPG or PNG images.");
 }
 
 function parseCurrencyToken(value: string) {
@@ -300,7 +448,8 @@ function parseTransactionRows(text: string) {
   return rows;
 }
 
-function createCsvBuffer(rows: TransactionRow[]) {
+async function createCsvBuffer(rows: TransactionRow[]) {
+  const { createObjectCsvStringifier } = await loadCsvWriter();
   const csv = createObjectCsvStringifier({
     header: [
       { id: "date", title: "Date" },
@@ -313,7 +462,8 @@ function createCsvBuffer(rows: TransactionRow[]) {
   return Buffer.from(csv.getHeaderString() + csv.stringifyRecords(rows), "utf8");
 }
 
-function createFallbackCsvBuffer(text: string) {
+async function createFallbackCsvBuffer(text: string) {
+  const { createObjectCsvStringifier } = await loadCsvWriter();
   const csv = createObjectCsvStringifier({
     header: [
       { id: "line_number", title: "Line" },
@@ -394,6 +544,7 @@ function buildParagraphsFromRows(rows: Array<Array<string | number>>) {
 }
 
 async function createDocxFromText(title: string, text: string) {
+  const { Document, HeadingLevel, Packer, Paragraph } = await loadDocx();
   const paragraphs = splitParagraphs(text);
   const document = new Document({
     sections: [
@@ -429,7 +580,8 @@ function normalizePptxBuffer(value: string | ArrayBuffer | Blob | Uint8Array) {
 }
 
 async function createPptxFromText(title: string, text: string) {
-  const presentation = new pptxgen();
+  const PptxGen = await loadPptxGen();
+  const presentation = new PptxGen();
   presentation.layout = "LAYOUT_WIDE";
 
   const titleSlide = presentation.addSlide();
@@ -464,14 +616,16 @@ async function createPptxFromText(title: string, text: string) {
   return normalizePptxBuffer(result);
 }
 
-function createWorkbookBuffer(rows: Array<Record<string, string>>) {
+async function createWorkbookBuffer(rows: Array<Record<string, string>>) {
+  const XLSX = await loadXlsx();
   const workbook = XLSX.utils.book_new();
   const worksheet = XLSX.utils.json_to_sheet(rows);
   XLSX.utils.book_append_sheet(workbook, worksheet, "Logic Vault");
   return Buffer.from(XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }));
 }
 
-function extractSpreadsheetRows(buffer: Buffer) {
+async function extractSpreadsheetRows(buffer: Buffer) {
+  const XLSX = await loadXlsx();
   const workbook = XLSX.read(buffer, { type: "buffer" });
   const firstSheetName = workbook.SheetNames[0];
 
@@ -558,6 +712,7 @@ async function splitPdf(file: UploadedToolFile, pageRanges: string) {
     pageRanges.trim().length === 0
       ? source.getPageIndices().map((index) => [index])
       : parsePageRanges(pageRanges, source.getPageCount());
+  const JSZip = await loadJsZip();
   const zip = new JSZip();
 
   for (let index = 0; index < groups.length; index += 1) {
@@ -618,6 +773,7 @@ async function wordToPdf(file: UploadedToolFile) {
     throw new Error("Please use a DOCX file.");
   }
 
+  const mammoth = await loadMammoth();
   const result = await mammoth.extractRawText({ buffer: file.data });
   const paragraphs = splitParagraphs(result.value);
   return createSimplePdf("Word to PDF", paragraphs.length > 0 ? paragraphs : ["No readable text was found."]);
@@ -628,7 +784,7 @@ async function excelToPdf(file: UploadedToolFile) {
     throw new Error("Please use a spreadsheet file.");
   }
 
-  const rows = extractSpreadsheetRows(file.data);
+  const rows = await extractSpreadsheetRows(file.data);
   const paragraphs = buildParagraphsFromRows(rows.slice(0, 80));
   return createSimplePdf(
     "Spreadsheet to PDF",
@@ -641,6 +797,7 @@ async function pptToPdf(file: UploadedToolFile) {
     throw new Error("Please use a PPTX file.");
   }
 
+  const JSZip = await loadJsZip();
   const zip = await JSZip.loadAsync(file.data);
   const slideNames = Object.keys(zip.files)
     .filter((name) => /^ppt\/slides\/slide\d+\.xml$/.test(name))
@@ -674,16 +831,11 @@ async function imageToPdf(files: UploadedToolFile[]) {
   const document = await PDFDocument.create();
 
   for (const file of files) {
-    if (!hasExtension(file, [".jpg", ".jpeg", ".png", ".webp"])) {
-      throw new Error("Please use JPG, PNG, or WEBP images.");
+    if (!hasExtension(file, [".jpg", ".jpeg", ".png"])) {
+      throw new Error("Please use JPG or PNG images.");
     }
 
-    const lowerName = file.name.toLowerCase();
-    const imageBuffer =
-      lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")
-        ? file.data
-        : await sharp(file.data).jpeg({ quality: 92 }).toBuffer();
-    const image = await document.embedJpg(imageBuffer);
+    const image = await embedRasterImage(document, file);
     const page = document.addPage([image.width, image.height]);
     page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
   }
@@ -718,7 +870,7 @@ async function pdfToExcel(file: UploadedToolFile) {
   const transactions = parseTransactionRows(text);
 
   if (transactions.length > 0) {
-    return createWorkbookBuffer(
+    return await createWorkbookBuffer(
       transactions.map((row) => ({
         Date: row.date,
         Description: row.description,
@@ -728,7 +880,7 @@ async function pdfToExcel(file: UploadedToolFile) {
     );
   }
 
-  return createWorkbookBuffer(
+  return await createWorkbookBuffer(
     text
       .split("\n")
       .map((line) => normalizeWhitespace(line))
@@ -749,6 +901,7 @@ async function pdfToPpt(file: UploadedToolFile) {
 async function pdfToJpg(file: UploadedToolFile) {
   ensurePdf(file);
   const screenshots = await extractPdfScreenshots(file.data);
+  const sharp = await loadSharp();
 
   if (screenshots.length === 0) {
     throw new Error("We could not render this PDF into images.");
@@ -763,6 +916,7 @@ async function pdfToJpg(file: UploadedToolFile) {
     };
   }
 
+  const JSZip = await loadJsZip();
   const zip = new JSZip();
 
   for (const screenshot of screenshots) {
@@ -1088,17 +1242,11 @@ async function scanImagesToPdf(files: UploadedToolFile[]) {
   const document = await PDFDocument.create();
 
   for (const file of ensureFiles(files, 1)) {
-    if (!hasExtension(file, [".jpg", ".jpeg", ".png", ".webp"])) {
-      throw new Error("Please use JPG, PNG, or WEBP scan images.");
+    if (!hasExtension(file, [".jpg", ".jpeg", ".png"])) {
+      throw new Error("Please use JPG or PNG scan images.");
     }
 
-    const cleanScan = await sharp(file.data)
-      .rotate()
-      .grayscale()
-      .normalize()
-      .jpeg({ quality: 92 })
-      .toBuffer();
-    const image = await document.embedJpg(cleanScan);
+    const image = await embedRasterImage(document, file);
     const page = document.addPage([image.width, image.height]);
     page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
   }
@@ -1334,7 +1482,7 @@ async function processStatementToCsv(file: UploadedToolFile, exportFormat = "csv
     return {
       filename: `${sanitizeStem(file.name)}.xlsx`,
       contentType: XLSX_MIME_TYPE,
-      data: createWorkbookBuffer(
+      data: await createWorkbookBuffer(
         (rows.length > 0 ? rows : parseTransactionRows(text)).map((row) => ({
           Date: row.date,
           Description: row.description,
@@ -1357,14 +1505,14 @@ async function processStatementToCsv(file: UploadedToolFile, exportFormat = "csv
     return {
       filename: `${sanitizeStem(file.name)}-google-sheets.csv`,
       contentType: CSV_MIME_TYPE,
-      data: rows.length > 0 ? createCsvBuffer(rows) : createFallbackCsvBuffer(text),
+      data: rows.length > 0 ? await createCsvBuffer(rows) : await createFallbackCsvBuffer(text),
     };
   }
 
   return {
     filename: `${sanitizeStem(file.name)}.csv`,
     contentType: CSV_MIME_TYPE,
-    data: rows.length > 0 ? createCsvBuffer(rows) : createFallbackCsvBuffer(text),
+    data: rows.length > 0 ? await createCsvBuffer(rows) : await createFallbackCsvBuffer(text),
   };
 }
 
@@ -1438,7 +1586,7 @@ async function readReportText(file: UploadedToolFile) {
   }
 
   if (hasExtension(file, [".csv", ".xlsx", ".xls"])) {
-    const rows = extractSpreadsheetRows(file.data);
+    const rows = await extractSpreadsheetRows(file.data);
     return buildParagraphsFromRows(rows).join("\n");
   }
 
@@ -1484,7 +1632,7 @@ async function readReportTransactions(file: UploadedToolFile) {
   }
 
   if (hasExtension(file, [".csv", ".xlsx", ".xls"])) {
-    return rowsToTransactions(extractSpreadsheetRows(file.data));
+    return rowsToTransactions(await extractSpreadsheetRows(file.data));
   }
 
   return [];
